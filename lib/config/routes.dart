@@ -1,7 +1,5 @@
-// lib/config/routes.dart
 import 'package:flutter/material.dart';
 import 'package:spotter/features/camera/screens/camera_screen.dart';
-
 import 'package:spotter/features/auth/screens/login_screen.dart';
 import 'package:spotter/features/auth/screens/callback_screen.dart';
 import 'package:spotter/features/auth/screens/success_screen.dart';
@@ -12,7 +10,11 @@ import 'package:spotter/shared/screens/error_screen.dart';
 import 'package:spotter/shared/screens/not_found_screen.dart';
 
 class Routes {
-  static const String initial = '/';
+  // Development flag to bypass auth
+  static const bool bypassAuth = true; // Toggle this to enable/disable auth
+
+  // Routes
+  static String get initial => bypassAuth ? addReport : login;
   static const String login = '/';
   static const String callback = '/callback';
   static const String addReport = '/add_report';
@@ -23,6 +25,19 @@ class Routes {
   static const String success = '/success';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    // If bypassing auth and trying to access auth routes, redirect to add report
+    if (bypassAuth && 
+        [login, callback, success].contains(settings.name)) {
+      return MaterialPageRoute(
+        builder: (_) => const AddReportScreen(),
+        settings: RouteSettings(
+          name: addReport,
+          arguments: settings.arguments,
+        ),
+      );
+    }
+
+    // Normal routing logic
     switch (settings.name) {
       case login:
         return MaterialPageRoute(
@@ -55,7 +70,6 @@ class Routes {
         );
 
       case editReport:
-        // Extract arguments passed to edit screen
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
           builder: (_) => EditReportScreen(
@@ -90,7 +104,7 @@ class Routes {
     }
   }
 
-  // Helper method for route navigation with error handling
+  // Helper methods remain unchanged
   static Future<T?> navigateTo<T extends Object?>(
     BuildContext context,
     String route, {
@@ -103,7 +117,6 @@ class Routes {
         arguments: arguments,
       );
     } catch (e) {
-      // Navigate to error screen on navigation failure
       Navigator.pushNamed(
         context,
         error,
@@ -113,7 +126,6 @@ class Routes {
     }
   }
 
-  // Helper method for replacing current route
   static Future<T?> navigateToReplace<T extends Object?>(
     BuildContext context,
     String route, {
